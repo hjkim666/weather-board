@@ -59,6 +59,25 @@ function addTask(e) {
   renderTasks();
 }
 
+// 03 단원 : 날씨는 목록을 그린 뒤에 받아 옴 (실패해도 목록은 그대로)
+async function loadWeather() {
+  const box = document.getElementById('weatherBox');
+  box.textContent = '날씨를 불러오는 중...';
+  try {
+    const res = await fetch(buildWeatherUrl());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const test = new URLSearchParams(location.search).get('test');
+    weatherByRegion = applyTestMode(parseWeather(await res.json()), test);
+    if (Object.keys(weatherByRegion).length === 0) throw new Error('응답 형식 오류');
+    box.textContent = '오늘 날씨 (Open-Meteo)' + (test ? ' · 시험 모드: ' + test : '');
+  } catch (err) {
+    weatherByRegion = {};
+    box.textContent = '날씨를 받지 못했습니다. 일정 목록만 표시합니다.';
+  }
+  renderTasks();
+}
+
 document.getElementById('taskForm').addEventListener('submit', addTask);
 loadTasks();
 renderTasks();
+loadWeather();
